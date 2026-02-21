@@ -398,7 +398,7 @@ body: JSON.stringify({
 
 from: "Shower Co STL <leads@theshowercostl.com>",
 
-to: ["youremail@gmail.com"],
+to: ["aubrey@summitgroupacq.com"],
 
 subject: "🚿 New Shower Co STL Lead",
 
