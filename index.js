@@ -125,7 +125,7 @@ const { access_token } = await tokenRes.json();
 
 await fetch(
 
-`https://sheets.googleapis.com/v4/spreadsheets/${env.GOOGLE_SHEET_ID}/values/${env.GOOGLE_SHEET_NAME}!A1:append?valueInputOption=USER_ENTERED`,
+`https://sheets.googleapis.com/v4/spreadsheets/${env.GOOGLE_SHEET_ID}/values/${env.GOOGLE_SHEET_NAME}!A2:append?valueInputOption=USER_ENTERED`,
 
 {
 
