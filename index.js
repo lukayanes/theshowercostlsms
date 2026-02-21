@@ -378,6 +378,52 @@ Body: smsBody
 
 );
 
+  /* ===============================
+EMAIL NOTIFICATION
+=============================== */
+
+await fetch("https://api.resend.com/emails", {
+
+method: "POST",
+
+headers: {
+
+"Authorization": `Bearer ${env.RESEND_API_KEY}`,
+
+"Content-Type": "application/json"
+
+},
+
+body: JSON.stringify({
+
+from: "Shower Co STL <leads@theshowercostl.com>",
+
+to: ["youremail@gmail.com"],
+
+subject: "🚿 New Shower Co STL Lead",
+
+html: `
+
+<h2>New Shower Co STL Lead</h2>
+
+<p><strong>Name:</strong> ${name}</p>
+
+<p><strong>Phone:</strong> ${phone}</p>
+
+<p><strong>Email:</strong> ${email}</p>
+
+<p><strong>Message:</strong><br>${message}</p>
+
+<p><strong>Source:</strong> ${referer}</p>
+
+<p><strong>IP:</strong> ${request.headers.get("cf-connecting-ip")}</p>
+
+`
+
+})
+
+});
+
 
 /* ===============================
 SAVE TO GOOGLE SHEETS
