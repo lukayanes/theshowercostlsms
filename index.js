@@ -12,145 +12,79 @@ const now = Math.floor(Date.now() / 1000);
 const header = { alg: "RS256", typ: "JWT" };
 
 const claim = {
-
 iss: env.GOOGLE_CLIENT_EMAIL,
-
 scope: "https://www.googleapis.com/auth/spreadsheets",
-
 aud: "https://oauth2.googleapis.com/token",
-
 iat: now,
-
 exp: now + 3600
-
 };
 
-
 const b64 = (obj) =>
-
 btoa(JSON.stringify(obj))
-
 .replace(/\+/g, "-")
-
 .replace(/\//g, "_")
-
 .replace(/=+$/, "");
-
 
 const unsigned = `${b64(header)}.${b64(claim)}`;
 
-
 const keyPem = env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
 
-
 const keyData = keyPem
-
 .replace("-----BEGIN PRIVATE KEY-----", "")
-
 .replace("-----END PRIVATE KEY-----", "")
-
 .replace(/\n/g, "");
 
-
 const key = await crypto.subtle.importKey(
-
 "pkcs8",
-
 Uint8Array.from(atob(keyData), c => c.charCodeAt(0)),
-
 { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-
 false,
-
 ["sign"]
-
 );
-
 
 const signature = await crypto.subtle.sign(
-
 "RSASSA-PKCS1-v1_5",
-
 key,
-
 new TextEncoder().encode(unsigned)
-
 );
-
 
 const jwt =
-
 unsigned +
-
 "." +
-
 btoa(String.fromCharCode(...new Uint8Array(signature)))
-
 .replace(/\+/g, "-")
-
 .replace(/\//g, "_")
-
 .replace(/=+$/, "");
 
-
 const tokenRes = await fetch(
-
 "https://oauth2.googleapis.com/token",
-
 {
-
 method: "POST",
-
-headers: {
-
-"Content-Type": "application/x-www-form-urlencoded"
-
-},
-
+headers: { "Content-Type": "application/x-www-form-urlencoded" },
 body: new URLSearchParams({
-
 grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-
 assertion: jwt
-
 })
-
 }
-
 );
-
 
 const { access_token } = await tokenRes.json();
 
-
 await fetch(
-
 `https://sheets.googleapis.com/v4/spreadsheets/${env.GOOGLE_SHEET_ID}/values/${env.GOOGLE_SHEET_NAME}!A2:append?valueInputOption=USER_ENTERED`,
-
 {
-
 method: "POST",
-
 headers: {
-
 Authorization: `Bearer ${access_token}`,
-
 "Content-Type": "application/json"
-
 },
-
 body: JSON.stringify({
-
 values: [row]
-
 })
-
 }
-
 );
 
 }
-
 
 __name(appendToSheet, "appendToSheet");
 
@@ -171,30 +105,20 @@ CORS
 if (request.method === "OPTIONS") {
 
 return new Response(null, {
-
 status: 204,
-
 headers: {
-
 "Access-Control-Allow-Origin": "*",
-
 "Access-Control-Allow-Methods": "POST, OPTIONS",
-
 "Access-Control-Allow-Headers": "Content-Type"
-
 }
-
 });
 
 }
 
-
 if (request.method !== "POST") {
 
 return new Response("Method Not Allowed", {
-
 status: 405
-
 });
 
 }
@@ -213,11 +137,7 @@ HONEYPOT
 
 if (form.get("_gotcha") || form.get("referral_code")) {
 
-return new Response("Spam blocked", {
-
-status: 400
-
-});
+return new Response("Spam blocked", { status: 400 });
 
 }
 
@@ -230,54 +150,28 @@ const captcha = form.get("g-recaptcha-response");
 
 if (!captcha) {
 
-return new Response("Captcha missing", {
-
-status: 400
-
-});
+return new Response("Captcha missing", { status: 400 });
 
 }
-
 
 const verify = await fetch(
-
 "https://www.google.com/recaptcha/api/siteverify",
-
 {
-
 method: "POST",
-
-headers: {
-
-"Content-Type": "application/x-www-form-urlencoded"
-
-},
-
+headers: { "Content-Type": "application/x-www-form-urlencoded" },
 body: new URLSearchParams({
-
 secret: env.RECAPTCHA_SECRET,
-
 response: captcha,
-
 remoteip: request.headers.get("cf-connecting-ip")
-
 })
-
 }
-
 );
-
 
 const captchaResult = await verify.json();
 
-
 if (!captchaResult.success) {
 
-return new Response("Captcha failed", {
-
-status: 400
-
-});
+return new Response("Captcha failed", { status: 400 });
 
 }
 
@@ -289,27 +183,15 @@ REFERER PROTECTION
 const referer = request.headers.get("referer") || "";
 
 const allowedDomains = [
-
 "https://theshowercostl.com",
-
 "https://www.theshowercostl.com"
-
 ];
 
-const valid = allowedDomains.some(domain =>
-
-referer.startsWith(domain)
-
-);
-
+const valid = allowedDomains.some(domain => referer.startsWith(domain));
 
 if (!valid) {
 
-return new Response("OK", {
-
-status: 200
-
-});
+return new Response("OK", { status: 200 });
 
 }
 
@@ -318,12 +200,10 @@ status: 200
 FORM DATA
 =============================== */
 
+const address = form.get("address") || "";
 const name = form.get("fullName") || "";
-
 const phone = form.get("phone") || "";
-
 const email = form.get("email") || "";
-
 const message = form.get("message") || "";
 
 
@@ -332,54 +212,37 @@ SMS ALERT
 =============================== */
 
 const smsBody =
-
 `🚿 New Shower Co STL Lead
 
+Address: ${address}
 Name: ${name}
 Phone: ${phone}
 Email: ${email}
 Message: ${message}`;
 
-
 const auth = btoa(
-
 `${env.TWILIO_API_KEY_SID}:${env.TWILIO_API_KEY_SECRET}`
-
 );
-
 
 await fetch(
-
 `https://api.twilio.com/2010-04-01/Accounts/${env.TWILIO_ACCOUNT_SID}/Messages.json`,
-
 {
-
 method: "POST",
-
 headers: {
-
 Authorization: `Basic ${auth}`,
-
 "Content-Type": "application/x-www-form-urlencoded"
-
 },
-
 body: new URLSearchParams({
-
 To: "+19139577764",
-
 MessagingServiceSid: env.TWILIO_MESSAGING_SERVICE,
-
 Body: smsBody
-
 })
-
 }
-
 );
 
-  /* ===============================
-EMAIL NOTIFICATION
+
+/* ===============================
+EMAIL
 =============================== */
 
 await fetch("https://api.resend.com/emails", {
@@ -387,11 +250,8 @@ await fetch("https://api.resend.com/emails", {
 method: "POST",
 
 headers: {
-
 "Authorization": `Bearer ${env.RESEND_API_KEY}`,
-
 "Content-Type": "application/json"
-
 },
 
 body: JSON.stringify({
@@ -406,16 +266,13 @@ html: `
 
 <h2>New Shower Co STL Lead</h2>
 
+<p><strong>Address:</strong> ${address}</p>
 <p><strong>Name:</strong> ${name}</p>
-
 <p><strong>Phone:</strong> ${phone}</p>
-
 <p><strong>Email:</strong> ${email}</p>
-
 <p><strong>Message:</strong><br>${message}</p>
 
 <p><strong>Source:</strong> ${referer}</p>
-
 <p><strong>IP:</strong> ${request.headers.get("cf-connecting-ip")}</p>
 
 `
@@ -431,22 +288,14 @@ SAVE TO GOOGLE SHEETS
 
 await appendToSheet(env, [
 
-new Date().toLocaleString("en-US", {
+new Date().toLocaleString("en-US", { timeZone: "America/New_York" }),
 
-timeZone: "America/New_York"
-
-}),
-
+address,
 name,
-
 phone,
-
 email,
-
 message,
-
 referer,
-
 request.headers.get("cf-connecting-ip") || ""
 
 ]);
@@ -461,9 +310,7 @@ return new Response("OK", {
 status: 200,
 
 headers: {
-
 "Access-Control-Allow-Origin": "*"
-
 }
 
 });
