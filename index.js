@@ -233,7 +233,7 @@ Authorization: `Basic ${auth}`,
 "Content-Type": "application/x-www-form-urlencoded"
 },
 body: new URLSearchParams({
-To: "+19139577764",
+To: "+16362199593",
 MessagingServiceSid: env.TWILIO_MESSAGING_SERVICE,
 Body: smsBody
 })
@@ -258,7 +258,7 @@ body: JSON.stringify({
 
 from: "Shower Co STL <leads@theshowercostl.com>",
 
-to: ["aubrey@summitgroupacq.com"],
+to: ["aubrey@summitgroupacq.com", "chansen@theshowerco.com"]
 
 subject: "🚿 New Shower Co STL Lead",
 
